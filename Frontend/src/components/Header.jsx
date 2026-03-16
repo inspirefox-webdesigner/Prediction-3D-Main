@@ -3,7 +3,7 @@ import logo from "../assets/logo.png";
 
 function Header() {
   return (
-    <header className="header-border w-full flex justify-between items-center px-4 md:px-8 lg:px-16 py-4 md:py-5 lg:py-6">
+    <header className="header-border w-full flex justify-between items-center px-4 md:px-8 lg:px-20 py-4 md:py-5 lg:py-10">
   <div className="flex items-center gap-2 md:gap-3">
     <img src={logo} className="w-36 md:w-52 lg:w-67.5 h-auto" />
   </div>

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Sansation:wght@300;400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Betterlett&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Betterlett&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @import "tailwindcss";
 
@@ -15,20 +16,44 @@
   font-family: 'Sansation', sans-serif;
 }
 
-.font-betterlett {
-  font-family: 'Betterlett', cursive;
+@font-face{
+  font-family: "Betterlett";
+  src: url("./assets/fonts/Betterlett.otf") format("truetype");
+}
+
+.font-betterlett{
+  font-family: "Betterlett", sans-serif;
+}
+
+.poppins-font{
+  font-family: 'Poppins', sans-serif;
 }
 
 .hero-bg {
   width: 100%;
-  min-height: 95vh;
+  min-height: 110vh;
   position: relative;
   overflow: hidden;
   border-bottom-left-radius: 40px;
   border-bottom-right-radius: 40px;
   background:
-    radial-gradient(circle at 50% 55%, #000 0%, #000 25%, transparent 60%),
-    linear-gradient(180deg, #1b78a8 0%, #0e5c86 40%, #000 100%);
+    radial-gradient(circle at 35% 45%, #000 0%, #000 25%, transparent 70%),
+    radial-gradient(circle at 65% 45%, #000 0%, #000 25%, transparent 70%),
+    linear-gradient(to right, #1b78a8 0%, #0e5c86 15%, transparent 25%),
+    linear-gradient(to left, #1b78a8 0%, #0e5c86 15%, transparent 25%);
+}
+
+.hero-bg::before {
+  content:"";
+  position:absolute;
+  bottom:-120px;
+  left:55%;
+  transform:translatex(-70%);
+  width:450px;
+  height:200px;
+  background:#001A28;
+  border-top-left-radius:220px;
+  border-top-right-radius:220px;
 }
 
 @media (min-width: 768px) {
@@ -144,20 +169,7 @@
   }
 }
 
-.bottom-curve {
-  width: 320px;
-  /* height:110px; */
-  border-top-left-radius: 100%;
-  border-top-right-radius: 100%;
 
-  background:
-    radial-gradient(120% 100% at 50% 0%, rgba(58, 184, 254, 0.45) 0%, rgba(5, 121, 188, 0.25) 40%, rgba(0, 0, 0, 0) 70%),
-    linear-gradient(180deg, #062f47 0%, #000000 100%);
-
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
 
 .get-started-text {
   font-size: 30px;
@@ -194,6 +206,7 @@ section two css start */
 
 .container-main {
   max-width: 1680px;
+  max-height: 1622px;
   margin: auto;
   padding: 0 20px;
 }
@@ -311,8 +324,10 @@ section two css start */
 
 .third-section{
   background:
-    radial-gradient(circle at 50% 55%, #000 0%, #000 25%, transparent 60%),
-    linear-gradient(180deg, #1b78a8 0%, #0e5c86 40%, #000 100%);
+    radial-gradient(circle at 35% 45%, #000 0%, #000 25%, transparent 70%),
+    radial-gradient(circle at 65% 45%, #000 0%, #000 25%, transparent 70%),
+    linear-gradient(to right, #1b78a8 0%, #0e5c86 10%, transparent 25%),
+    linear-gradient(to left, #1b78a8 0%, #0e5c86 10%, transparent 25%);
 }
 
 /*four section*/
@@ -321,7 +336,7 @@ section two css start */
   position:relative;
   /* max-width:260px; */
   border-radius:18px;
-  border:1px solid rgba(0,164,255,0.35);
+  border:1px solid #034077;
   background:linear-gradient(180deg,rgba(0,164,255,0.15),rgba(0,0,0,0.3));
   text-align:center;
   backdrop-filter:blur(6px);
@@ -332,8 +347,10 @@ section two css start */
   position:absolute;
   inset:0;
   border-radius:18px;
-  background:radial-gradient(circle at top, rgba(255,255,255,0.2), transparent 70%);
   pointer-events:none;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.2), transparent 50%),
+    radial-gradient(circle at bottom, rgba(255,255,255,0.2), transparent 50%);
 }
 
 
@@ -355,7 +372,8 @@ position:relative;
 }
 
 .house-img-1{
-background:linear-gradient(180deg,#052f4c,#02131d);
+background:#012235;
+border: 1px solid #034077;
 }
 
 .circle-line-area{
@@ -387,3 +405,37 @@ border-radius:50%;
 border-right:2px solid rgba(255,255,255,0.25);
 }
 /*section five css end here*/
+
+
+
+/* Footer section start */
+
+/* styles.css */
+
+.footer-section{
+  background:
+    radial-gradient(circle at 35% 45%, #000 0%, #000 25%, transparent 70%),
+    radial-gradient(circle at 65% 45%, #000 0%, #000 25%, transparent 70%),
+    linear-gradient(to right, #1b78a8 0%, #0e5c86 10%, transparent 25%),
+    linear-gradient(to left, #1b78a8 0%, #0e5c86 10%, transparent 25%);
+  border-top-left-radius:80px;
+  border-top-right-radius:80px;
+  position:relative;
+}
+
+.footer-section::before{
+  content:"";
+  position:absolute;
+  top:-120px;
+  left:55%;
+  transform:translateX(-50%);
+  width:420px;
+  height:200px;
+  background:#001A28;
+  border-bottom-left-radius:220px;
+  border-bottom-right-radius:220px;
+}
+
+
+/* Footer section end */
+
