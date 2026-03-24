@@ -12,6 +12,10 @@
   --c4: #0575BC00;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 .font-sansation {
   font-family: 'Sansation', sans-serif;
 }
@@ -199,9 +203,8 @@ section two css start */
 
 .section-one {
   width: 100%;
-  background:
-
-     linear-gradient(90deg, #001A28 0%, #001A28 47%);
+  background: linear-gradient(90deg, #001A28 0%, #001A28 47%);
+  overflow-x: hidden;
 }
 
 .container-main {
@@ -406,7 +409,25 @@ border-right:2px solid rgba(255,255,255,0.25);
 }
 /*section five css end here*/
 
+/* second section - prevent image clipping during 360 spin */
+.second-sticky-panel {
+  overflow: visible !important;
+}
+.second-right-img {
+  overflow: visible !important;
+}
+.second-right-img > div {
+  overflow: visible !important;
+}
+.second-steps-wrapper {
+  overflow: visible !important;
+}
 
+/* 3D scroll animation helpers */
+[data-3d-card] {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
 
 /* Footer section start */
 

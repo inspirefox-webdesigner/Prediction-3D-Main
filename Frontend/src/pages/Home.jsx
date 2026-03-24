@@ -17,7 +17,10 @@ import box2 from "../assets/box2.png";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "@studio-freight/lenis";
+
+gsap.registerPlugin(ScrollTrigger);
 
 function Home() {
   const dots = useMemo(() => {
@@ -101,6 +104,9 @@ border-2 border-red-500 mt-4 mb-4"
       smooth: true,
     });
 
+    // Sync Lenis with GSAP ScrollTrigger
+    lenis.on("scroll", ScrollTrigger.update);
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -145,8 +151,655 @@ border-2 border-red-500 mt-4 mb-4"
     /* first hero section animation end*/
   }
 
+  // second section refs
+  const secondSectionRef = useRef(null);
+  const secondHeadingRef = useRef(null);
+  const secondRightBoxRef = useRef(null);
+  const secondBgRef = useRef(null);       // bg box - shows immediately
+  const secondBoxImgRef = useRef(null);   // image - spins down from top
+  const secondLineImgRef = useRef(null);  // line image - below image
+  const stepCardsRef = useRef([]);
+
+  // third section refs
+  const thirdSectionRef = useRef(null);
+  const thirdBgRef = useRef(null);         // absolute bg div - slides from left-top
+  const thirdBox1Ref = useRef(null);       // top image box - slides from right-top
+  const thirdBox2Ref = useRef(null);
+  const thirdTextRef = useRef(null);
+  const thirdFloatImgRef = useRef(null);
+
+  {/* fourth section animation refs */}
+  const fourthHeadingRef = useRef(null);
+  const fourthLeftBoxRef = useRef(null);
+  const fourthRightBoxRef = useRef(null);
+  const fourthImg1Ref = useRef(null);
+  const fourthImg2Ref = useRef(null);
+  const fourthSectionRef = useRef(null);
+
+  // fifth section animation refs
+  const fifthSectionRef = useRef(null);
+  const fifthBox1Ref = useRef(null); // slides from top
+  const fifthBox2Ref = useRef(null); // slides from bottom
+  const fifthBox3Ref = useRef(null); // slides from right
+  const fifthImg1Ref = useRef(null); // slides from top
+  const fifthImg2Ref = useRef(null); // slides from bottom
+
+  // sixth section animation refs
+  const sixthSectionRef = useRef(null);
+  const sixthLeftImgRef = useRef(null);    // left img (Report bg wrapper) - scrub from left + 360 rotationY
+  const sixthRightBgRef = useRef(null);    // right side bg box - scrub from right
+  const sixthRightImgRef = useRef(null);   // right img (Home2) - scrubs down from fifth section
+  const sixthArrow1BgRef = useRef(null);   // left arrow bg - slides from left
+  const sixthArrow2BgRef = useRef(null);   // right arrow bg - slides from right
+  const sixthArrow1IconRef = useRef(null); // left arrow icon - slides from top
+  const sixthArrow2IconRef = useRef(null); // right arrow icon - slides from bottom
+
+  // seventh section animation refs
+  const seventhSectionRef = useRef(null);
+  const seventhTopImgRef = useRef(null);   // top image (FourBox) - spins down from top with rotationY 360
+  const seventhLeftBoxRef = useRef(null);  // left box wrapper - slides from left
+  const seventhLeftContentRef = useRef(null); // left box inner content - zoom out from depth
+  const seventhRightBgRef = useRef(null);  // right bg box (rounded-3xl) - square open effect from scale 0
+  const seventhRightImgRef = useRef(null); // right image (Home3) - spins in from top-right with rotationY 360
+
+
+  /* ── SECOND & THIRD SECTION 3D ANIMATIONS ── */
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+
+      /* ── SECOND SECTION: STICKY SCROLL WITH STEP REVEAL ── */
+      const stickyPanel = secondSectionRef.current?.querySelector(".second-sticky-panel");
+      const leftText = secondSectionRef.current?.querySelector(".second-left-text");
+      const rightImg = secondSectionRef.current?.querySelector(".second-right-img");
+      const cards = stepCardsRef.current.filter(Boolean);
+
+      if (!stickyPanel || !leftText || cards.length === 0) return;
+
+      // Initial 3D entry: left text flies in from left with rotateY
+      gsap.fromTo(leftText,
+        { x: -140, rotateY: -35, opacity: 0, transformPerspective: 1000, transformOrigin: "left center" },
+        {
+          x: 0, rotateY: 0, opacity: 1, duration: 1.8, ease: "power3.out",
+          scrollTrigger: {
+            trigger: secondSectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // BG box: fade in at same time as left text - no position shift, just opacity
+      gsap.fromTo(secondBgRef.current,
+        { opacity: 0 },
+        {
+          opacity: 1, duration: 1.8, ease: "power3.out",
+          scrollTrigger: {
+            trigger: secondSectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // IMAGE: starts at top of bg box (y = -420), scrub-based drop + 360° rotation
+      // Over 4 steps: drops to y=0 (bottom of bg box) AND completes 360° rotationY
+      const imgEl = secondBoxImgRef.current;
+      const STEP_DIST_IMG = window.innerHeight;
+      const TOTAL_SCROLL = cards.length * STEP_DIST_IMG;
+
+      // Set initial: image at top of bg box area, hidden, no rotation yet
+      // xPercent: -50 centers it (replaces left:50% which conflicts with GSAP y)
+      gsap.set(imgEl, {
+        xPercent: -50,
+        y: -420,
+        rotationY: 0,
+        opacity: 0,
+        transformPerspective: 1200,
+        transformOrigin: "center center",
+      });
+
+      // Fade in image when section enters (bg already visible at same time)
+      ScrollTrigger.create({
+        trigger: secondSectionRef.current,
+        start: "top 80%",
+        onEnter: () => gsap.to(imgEl, { opacity: 1, duration: 0.4 }),
+        onLeaveBack: () => gsap.to(imgEl, { opacity: 0, duration: 0.3 }),
+      });
+
+      // Scrub: y from -420 → 0 (drops into bg box) over 4 steps
+      gsap.to(imgEl, {
+        y: 0,
+        ease: "power1.inOut",
+        scrollTrigger: {
+          trigger: secondSectionRef.current,
+          start: "top top",
+          end: `+=${TOTAL_SCROLL}`,
+          scrub: 1.2,
+        },
+      });
+
+      // Scrub: rotationY 0 → 360 (full spin) over 4 steps - gradual per step
+      gsap.to(imgEl, {
+        rotationY: 360,
+        ease: "none",
+        scrollTrigger: {
+          trigger: secondSectionRef.current,
+          start: "top top",
+          end: `+=${TOTAL_SCROLL}`,
+          scrub: 1.2,
+        },
+      });
+
+      // LINE image: slides in from bottom-right after section enters
+      if (secondLineImgRef.current) {
+        gsap.fromTo(secondLineImgRef.current,
+          { x: 120, y: 60, opacity: 0, rotateZ: 8, transformPerspective: 800 },
+          {
+            x: 0, y: 0, opacity: 1, rotateZ: 0, duration: 1.6, ease: "power3.out",
+            scrollTrigger: {
+              trigger: secondSectionRef.current,
+              start: "top 75%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // Set all cards hidden initially
+      gsap.set(cards, { opacity: 0, y: 80, rotateX: 40, z: -180, transformPerspective: 1000, transformOrigin: "top center" });
+
+      // Sticky scroll: each card shows/hides as user scrolls through the steps area
+      const stepsWrapper = secondSectionRef.current;
+      if (stepsWrapper) {
+        const totalSteps = cards.length;
+        // Pin the sticky panel for (totalSteps * 100vh) scroll distance
+        ScrollTrigger.create({
+          trigger: stepsWrapper,
+          start: "top top",
+          end: `+=${totalSteps * 100}%`,
+          pin: stickyPanel,
+          pinSpacing: true,
+          anticipatePin: 1,
+        });
+
+        cards.forEach((card, i) => {
+          const segStart = i / totalSteps;
+          const segEnd = (i + 1) / totalSteps;
+
+          ScrollTrigger.create({
+            trigger: stepsWrapper,
+            start: `top+=${segStart * totalSteps * window.innerHeight} top`,
+            end: `top+=${segEnd * totalSteps * window.innerHeight} top`,
+            onEnter: () => {
+              // Hide previous card with 3D exit
+              if (i > 0 && cards[i - 1]) {
+                gsap.to(cards[i - 1], {
+                  opacity: 0, y: -60, rotateX: -30, z: -150,
+                  duration: 0.6, ease: "power2.in",
+                });
+              }
+              // Show current card with 3D entry
+              gsap.fromTo(card,
+                { opacity: 0, y: 80, rotateX: 40, z: -180 },
+                { opacity: 1, y: 0, rotateX: 0, z: 0, duration: 0.9, ease: "power3.out" }
+              );
+              // Hide left text after first step enters
+              if (i === 0) {
+                gsap.to(leftText, { opacity: 0, x: -60, rotateY: -20, duration: 0.7, ease: "power2.in" });
+              }
+            },
+            onLeaveBack: () => {
+              // Hide current card
+              gsap.to(card, {
+                opacity: 0, y: 80, rotateX: 40, z: -180,
+                duration: 0.6, ease: "power2.in",
+              });
+              // Show previous card
+              if (i > 0 && cards[i - 1]) {
+                gsap.fromTo(cards[i - 1],
+                  { opacity: 0, y: -60, rotateX: -30, z: -150 },
+                  { opacity: 1, y: 0, rotateX: 0, z: 0, duration: 0.9, ease: "power3.out" }
+                );
+              }
+              // Restore left text when scrolling back before first step
+              if (i === 0) {
+                gsap.to(leftText, { opacity: 1, x: 0, rotateY: 0, duration: 0.7, ease: "power3.out" });
+              }
+            },
+          });
+        });
+      }
+
+      /* ── THIRD SECTION 3D ── */
+
+      // thirdBox1: Arc motion from left (triggered when second section ends)
+      // Start from left side, move in arc path to center
+      gsap.fromTo(
+        thirdBox1Ref.current,
+        {
+          x: -600,
+          y: 100,
+          scale: 0.7,
+          rotateY: -45,
+          rotateZ: -12,
+          opacity: 0,
+          transformPerspective: 1600,
+          transformOrigin: "center center",
+        },
+        {
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotateY: 0,
+          rotateZ: 0,
+          opacity: 1,
+          duration: 2.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: thirdSectionRef.current,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // thirdBox1 parallax depth scrub (after it settles)
+      gsap.to(thirdBox1Ref.current, {
+        y: -70,
+        ease: "none",
+        scrollTrigger: {
+          trigger: thirdSectionRef.current,
+          start: "top 60%",
+          end: "bottom top",
+          scrub: 2,
+        },
+      });
+
+      // thirdBox2: 3D zoom-out from depth (bottom box)
+      gsap.fromTo(
+        thirdBox2Ref.current,
+        { scale: 1.2, rotateX: -20, rotateY: 15, opacity: 0, transformPerspective: 1400, transformOrigin: "center center", z: 150 },
+        {
+          scale: 1, rotateX: 0, rotateY: 0, opacity: 1, z: 0, duration: 2, ease: "power3.out",
+          scrollTrigger: {
+            trigger: thirdBox2Ref.current,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // thirdBox2 parallax scrub
+      gsap.to(thirdBox2Ref.current, {
+        y: -40,
+        ease: "none",
+        scrollTrigger: {
+          trigger: thirdSectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 3,
+        },
+      });
+
+      // Third section text: BIG zoom-out 3D reveal (scale 2 → 1 from center)
+      if (thirdTextRef.current) {
+        const textChildren = Array.from(thirdTextRef.current.children);
+        gsap.fromTo(
+          textChildren,
+          {
+            scale: 2.2,
+            opacity: 0,
+            z: 400,
+            rotateX: -18,
+            transformPerspective: 1400,
+            transformOrigin: "center center",
+          },
+          {
+            scale: 1, opacity: 1, z: 0, rotateX: 0,
+            duration: 1.8,
+            stagger: 0.2,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: thirdTextRef.current,
+              start: "top 80%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // Thirdbox2 floating image: scrub parallax from right with 3D rotate (proper timing)
+      if (thirdFloatImgRef.current) {
+        gsap.fromTo(
+          thirdFloatImgRef.current,
+          { x: 400, rotateY: -35, rotateZ: -10, opacity: 0, transformPerspective: 1000 },
+          {
+            x: 0, rotateY: 0, rotateZ: 0, opacity: 0.9,
+            ease: "none",
+            scrollTrigger: {
+              trigger: thirdTextRef.current,
+              start: "top 75%",
+              end: "center 35%",
+              scrub: 2.2,
+            },
+          }
+        );
+      }
+
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+
+      // ── HELPER: fully bidirectional scrub animation ──
+      // - scroll down  → animates from fromVars → toVars (scrub-linked)
+      // - scroll back  → reverses back to fromVars automatically (scrub is bidirectional)
+      // - past end     → optional float starts; float is killed the moment you scroll back in
+      // - refresh      → invalidateOnRefresh recalculates positions; onRefresh snaps state
+      // Float is a SEPARATE tween, never interferes with the scrub direction.
+      const scrubIn = (el, fromVars, toVars, stConfig, floatVars) => {
+        let floatTween = null;
+
+        const startFloat = () => {
+          if (!floatVars) return;
+          floatTween = gsap.to(el, { ...floatVars, yoyo: true, repeat: -1 });
+        };
+
+        const stopFloat = () => {
+          if (floatTween) { floatTween.kill(); floatTween = null; }
+          // Reset y offset from float so scrub starts clean
+          if (floatVars) gsap.set(el, { y: 0 });
+        };
+
+        gsap.fromTo(el, fromVars, {
+          ...toVars,
+          ease: toVars.ease || "power2.out",
+          scrollTrigger: {
+            ...stConfig,
+            scrub: stConfig.scrub ?? 1.4,
+            invalidateOnRefresh: true,
+            onLeave: () => {
+              // Fully scrolled past end → element is in final position → start float
+              startFloat();
+            },
+            onEnterBack: () => {
+              // Scrolled back into animation zone → kill float, scrub takes over again
+              stopFloat();
+            },
+            onLeaveBack: () => {
+              // Scrolled back before start → kill float (element is back at fromVars)
+              stopFloat();
+            },
+            onRefresh: (self) => {
+              // After page refresh: if scroll is already past this animation's end,
+              // snap to final state and start float immediately
+              if (self.progress >= 1) {
+                gsap.set(el, { clearProps: "all" });
+                gsap.set(el, { ...toVars, ease: undefined, scrollTrigger: undefined });
+                startFloat();
+              }
+            },
+          },
+        });
+      };
+
+      /* ── FOURTH SECTION ── */
+
+      // HEADING: zoom-out from huge (scale 3, deep z) as section scrolls in
+      scrubIn(
+        fourthHeadingRef.current,
+        { scale: 3, z: 600, opacity: 0, rotateX: 20, transformPerspective: 1400, transformOrigin: "center center" },
+        { scale: 1, z: 0, opacity: 1, rotateX: 0 },
+        { trigger: fourthHeadingRef.current, start: "top 95%", end: "top 30%", scrub: 1.4 }
+      );
+
+      // LEFT BOX: scrubs from left with 360° rotationY, then floats
+      scrubIn(
+        fourthLeftBoxRef.current,
+        { x: -500, rotationY: -360, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: fourthSectionRef.current, start: "top 90%", end: "center 50%", scrub: 1.4 },
+        { y: -14, duration: 3.2, ease: "sine.inOut" }
+      );
+
+      // RIGHT BOX: scrubs from right with 360° rotationY, then floats
+      scrubIn(
+        fourthRightBoxRef.current,
+        { x: 500, rotationY: 360, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: fourthSectionRef.current, start: "top 90%", end: "center 50%", scrub: 1.6 },
+        { y: -14, duration: 3.2, ease: "sine.inOut", delay: 0.4 }
+      );
+
+      // IMAGE 1: scrubs down from top with 360° rotationX, then floats
+      scrubIn(
+        fourthImg1Ref.current,
+        { y: -400, rotationX: 360, opacity: 0, transformPerspective: 1200, transformOrigin: "center top" },
+        { y: 0, rotationX: 0, opacity: 1 },
+        { trigger: fourthSectionRef.current, start: "top 90%", end: "center 50%", scrub: 1.5 },
+        { y: -10, duration: 2.8, ease: "sine.inOut", delay: 0.2 }
+      );
+
+      // IMAGE 2: scrubs from left with 360° rotationY, then floats
+      scrubIn(
+        fourthImg2Ref.current,
+        { x: -400, rotationY: -360, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: fourthSectionRef.current, start: "top 85%", end: "bottom 60%", scrub: 1.6 },
+        { y: 10, duration: 2.8, ease: "sine.inOut", delay: 0.6 }
+      );
+
+      /* ── FIFTH SECTION ── */
+
+      // BOX 1: scrubs from left with rotationY flip, then floats
+      scrubIn(
+        fifthBox1Ref.current,
+        { x: -350, rotationY: -90, opacity: 0, transformPerspective: 1000, transformOrigin: "left center" },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: fifthSectionRef.current, start: "top 90%", end: "top 30%", scrub: 1.4 },
+        { y: -12, duration: 3.0, ease: "sine.inOut" }
+      );
+
+      // BOX 2: scrubs up from bottom with rotationX flip, then floats
+      scrubIn(
+        fifthBox2Ref.current,
+        { y: 350, rotationX: 90, opacity: 0, transformPerspective: 1000, transformOrigin: "center bottom" },
+        { y: 0, rotationX: 0, opacity: 1 },
+        { trigger: fifthSectionRef.current, start: "top 85%", end: "center 40%", scrub: 1.5 },
+        { y: -12, duration: 3.0, ease: "sine.inOut", delay: 0.5 }
+      );
+
+      // BOX 3: scrubs down from top with rotationX flip, then floats
+      scrubIn(
+        fifthBox3Ref.current,
+        { y: -350, rotationX: -90, opacity: 0, transformPerspective: 1000, transformOrigin: "center top" },
+        { y: 0, rotationX: 0, opacity: 1 },
+        { trigger: fifthSectionRef.current, start: "top 90%", end: "top 25%", scrub: 1.4 },
+        { y: -12, duration: 3.0, ease: "sine.inOut", delay: 0.3 }
+      );
+
+      // IMG 1: travels down from fourth section area into fifth section slot
+      scrubIn(
+        fifthImg1Ref.current,
+        { y: -window.innerHeight * 1.2, rotationY: -180, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { y: 0, rotationY: 0, opacity: 1, ease: "power1.out" },
+        { trigger: fifthSectionRef.current, start: "top 100%", end: "top 10%", scrub: 1.6 },
+        { y: -10, duration: 2.8, ease: "sine.inOut", delay: 0.2 }
+      );
+
+      // IMG 2: travels down from fourth section area, staggered
+      scrubIn(
+        fifthImg2Ref.current,
+        { y: -window.innerHeight * 0.9, rotationX: 180, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { y: 0, rotationX: 0, opacity: 1, ease: "power1.out" },
+        { trigger: fifthSectionRef.current, start: "top 95%", end: "center 20%", scrub: 1.8 },
+        { y: 10, duration: 2.8, ease: "sine.inOut", delay: 0.6 }
+      );
+
+      /* ── SIXTH SECTION ── */
+
+      // LEFT IMAGE: scrubs from left with 360° rotationY
+      scrubIn(
+        sixthLeftImgRef.current,
+        { x: -600, rotationY: -360, opacity: 0, transformPerspective: 1400, transformOrigin: "left center" },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: sixthSectionRef.current, start: "top 90%", end: "top 20%", scrub: 1.5 }
+      );
+
+      // RIGHT BG BOX: scrubs from right
+      scrubIn(
+        sixthRightBgRef.current,
+        { x: 400, opacity: 0, transformPerspective: 1200 },
+        { x: 0, opacity: 1 },
+        { trigger: sixthSectionRef.current, start: "top 90%", end: "top 15%", scrub: 1.6 }
+      );
+
+      // RIGHT IMAGE: travels down from fifth section, then floats
+      scrubIn(
+        sixthRightImgRef.current,
+        { y: -window.innerHeight * 1.0, rotationX: -180, opacity: 0, transformPerspective: 1200, transformOrigin: "center center" },
+        { y: 0, rotationX: 0, opacity: 1, ease: "power1.out" },
+        { trigger: sixthSectionRef.current, start: "top 100%", end: "top 10%", scrub: 1.8 },
+        { y: -14, duration: 3.0, ease: "sine.inOut" }
+      );
+
+      // ARROW 1 BG: scrubs from left with rotationY tilt
+      scrubIn(
+        sixthArrow1BgRef.current,
+        { x: -120, opacity: 0, rotationY: -45, transformPerspective: 800 },
+        { x: 0, opacity: 1, rotationY: 0 },
+        { trigger: sixthSectionRef.current, start: "top 80%", end: "top 30%", scrub: 1.3 }
+      );
+
+      // ARROW 2 BG: scrubs from right with rotationY tilt
+      scrubIn(
+        sixthArrow2BgRef.current,
+        { x: 120, opacity: 0, rotationY: 45, transformPerspective: 800 },
+        { x: 0, opacity: 1, rotationY: 0 },
+        { trigger: sixthSectionRef.current, start: "top 80%", end: "top 30%", scrub: 1.3 }
+      );
+
+      // ARROW 1 ICON: scrubs down from top with rotationX flip
+      scrubIn(
+        sixthArrow1IconRef.current,
+        { y: -50, opacity: 0, rotationX: -90, transformPerspective: 600 },
+        { y: 0, opacity: 1, rotationX: 0 },
+        { trigger: sixthSectionRef.current, start: "top 75%", end: "top 25%", scrub: 1.2 }
+      );
+
+      // ARROW 2 ICON: scrubs up from bottom with rotationX flip
+      scrubIn(
+        sixthArrow2IconRef.current,
+        { y: 50, opacity: 0, rotationX: 90, transformPerspective: 600 },
+        { y: 0, opacity: 1, rotationX: 0 },
+        { trigger: sixthSectionRef.current, start: "top 75%", end: "top 25%", scrub: 1.2 }
+      );
+
+      /* ── SEVENTH SECTION ── */
+
+      // TOP IMAGE (FourBox): top mathi niche aave + 360° rotationY spin - scrub based
+      // Pehla y: -window.innerHeight thi sharu thay, rotate karta karta niche settle thay
+      scrubIn(
+        seventhTopImgRef.current,
+        {
+          y: -window.innerHeight * 0.8,
+          rotationY: -360,
+          opacity: 0,
+          scale: 0.6,
+          transformPerspective: 1400,
+          transformOrigin: "center top",
+        },
+        { y: 0, rotationY: 0, opacity: 1, scale: 1 },
+        { trigger: seventhSectionRef.current, start: "top 95%", end: "top 20%", scrub: 1.6 },
+        { y: -12, duration: 3.0, ease: "sine.inOut" } // settle thaya pachi float
+      );
+
+      // LEFT BOX WRAPPER: left side thi slide in with rotationY tilt
+      // Box puri left side thi aave - 3D perspective sathe
+      scrubIn(
+        seventhLeftBoxRef.current,
+        {
+          x: -500,
+          rotationY: -45,
+          opacity: 0,
+          transformPerspective: 1200,
+          transformOrigin: "left center",
+        },
+        { x: 0, rotationY: 0, opacity: 1 },
+        { trigger: seventhSectionRef.current, start: "top 90%", end: "top 25%", scrub: 1.4 }
+      );
+
+      // LEFT BOX CONTENT: zoom out from depth (scale 2 → 1, z 400 → 0)
+      // Box aavi gayi pachi andar no content zoom out thaine reveal thay
+      if (seventhLeftContentRef.current) {
+        const contentChildren = Array.from(seventhLeftContentRef.current.children);
+        gsap.fromTo(
+          contentChildren,
+          {
+            scale: 2,
+            opacity: 0,
+            z: 400,
+            rotateX: -15,
+            transformPerspective: 1200,
+            transformOrigin: "center center",
+          },
+          {
+            scale: 1, opacity: 1, z: 0, rotateX: 0,
+            duration: 1.6,
+            stagger: 0.18,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: seventhSectionRef.current,
+              start: "top 70%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // RIGHT BG BOX: scale 0 → 1 (square open effect) - pehla bg box open thay
+      // scaleX 0 thi sharu thay jethhi "square opening" effect aave
+      scrubIn(
+        seventhRightBgRef.current,
+        {
+          scaleX: 0,
+          scaleY: 0.3,
+          opacity: 0,
+          transformPerspective: 1000,
+          transformOrigin: "center center",
+        },
+        { scaleX: 1, scaleY: 1, opacity: 1 },
+        { trigger: seventhSectionRef.current, start: "top 90%", end: "top 40%", scrub: 1.5 }
+      );
+
+      // RIGHT IMAGE (Home3): right-top mathi aave + 360° rotationY spin
+      // Bg box open thaya pachi image spin karta karta settle thay
+      scrubIn(
+        seventhRightImgRef.current,
+        {
+          x: 300,
+          y: -300,
+          rotationY: 360,
+          opacity: 0,
+          scale: 0.5,
+          transformPerspective: 1400,
+          transformOrigin: "right top",
+        },
+        { x: 0, y: 0, rotationY: 0, opacity: 1, scale: 1 },
+        { trigger: seventhSectionRef.current, start: "top 80%", end: "center 40%", scrub: 1.8 },
+        { y: -10, duration: 2.8, ease: "sine.inOut", delay: 0.3 } // settle thaya pachi float
+      );
+
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="w-full section-one">
+    <div className="w-full section-one overflow-x-hidden" style={{ maxWidth: "100vw" }}>
       <div ref={heroRef} className="hero-bg text-white">
         {dots.map((d, i) => (
           <div
@@ -210,327 +863,185 @@ border-2 border-red-500 mt-4 mb-4"
 
       {/*secound section start Here*/}
 
-      <section className="w-full py-14 md:py-55 bg-[linear-gradient(90deg,#001A28_0%,#001A28_47%)]">
-        <div className="max-w-[1550px] mx-auto px-5">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-10 lg:gap-16">
-            <div className="leading-tight text-center lg:text-left">
+      {/* Sticky scroll wrapper - 100vh initial + 4 steps * 100vh each */}
+      <div ref={secondSectionRef} className="second-steps-wrapper bg-[linear-gradient(90deg,#001A28_0%,#001A28_47%)]" style={{ height: "550vh" }}>
+
+        {/* Sticky panel */}
+        <div className="second-sticky-panel w-full h-screen flex items-center justify-center" style={{ perspective: "1200px", overflow: "visible" }}>
+          <div className="max-w-[1550px] w-full mx-auto px-5 h-full flex items-center relative">
+
+            {/* Left text */}
+            <div className="second-left-text leading-tight text-center lg:text-left absolute left-5 lg:left-10 z-10" style={{ transformStyle: "preserve-3d", willChange: "transform" }}>
               <div className="flex items-center justify-center lg:justify-start gap-2 flex-wrap relative">
-                <motion.span
-                  initial={{ opacity: 0, y: 60 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: false, amount: 0.6 }}
-                  transition={{ duration: 1 }}
-                  className="text-white font-sansation font-bold text-[28px] md:text-[40px] lg:text-[60px] leading-none"
-                >
-                  Get Your
-                </motion.span>
-
-                <motion.svg
-                  initial={{ scale: 0, rotate: -120 }}
-                  whileInView={{ scale: 1, rotate: 0 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 1.2 }}
-                  className="w-6 md:w-10 lg:w-15 absolute lg:left-55 lg:-top-8 left-53 -top-3"
-                  viewBox="0 0 60 60"
-                >
-                  <path
-                    d="M48.4715 23.1338C48.3625 22.9414 48.2044 22.7813 48.0134 22.67C47.8223 22.5587 47.6052 22.5 47.384 22.5H31.009L33.7544 1.52407L11.5365 35.5953H28.7315L26.5559 58.5075L48.4565 24.3922Z"
-                    fill="#FF0808"
-                  />
-                </motion.svg>
+                <span className="text-white font-sansation font-bold text-[28px] md:text-[40px] lg:text-[60px] leading-none">Get Your</span>
+                <svg className="w-6 md:w-10 lg:w-15 absolute lg:left-55 lg:-top-8 left-53 -top-3" viewBox="0 0 60 60">
+                  <path d="M48.4715 23.1338C48.3625 22.9414 48.2044 22.7813 48.0134 22.67C47.8223 22.5587 47.6052 22.5 47.384 22.5H31.009L33.7544 1.52407L11.5365 35.5953H28.7315L26.5559 58.5075L48.4565 24.3922Z" fill="#FF0808" />
+                </svg>
               </div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="font-bold text-[28px] md:text-[40px] lg:text-[60px] bg-[rgba(58,184,254,1)] bg-clip-text text-transparent"
-              >
-                Construction Scheduling
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 1, delay: 0.4 }}
-                className="text-white font-bold text-[28px] md:text-[40px] lg:text-[60px]"
-              >
-                And Take Off Estimated
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 1, delay: 0.6 }}
-                className="text-white font-bold text-[28px] md:text-[40px] lg:text-[60px]"
-              >
-                Construction Planning In
-              </motion.div>
-
+              <div className="font-bold text-[28px] md:text-[40px] lg:text-[60px] bg-[rgba(58,184,254,1)] bg-clip-text text-transparent">Construction Scheduling</div>
+              <div className="text-white font-bold text-[28px] md:text-[40px] lg:text-[60px]">And Take Off Estimated</div>
+              <div className="text-white font-bold text-[28px] md:text-[40px] lg:text-[60px]">Construction Planning In</div>
               <div className="flex items-center justify-center lg:justify-start gap-2 flex-wrap">
-                <motion.span
-                  initial={{ opacity: 0, x: -60 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 1, delay: 0.8 }}
-                  className="font-bold text-[28px] md:text-[40px] lg:text-[60px] bg-[linear-gradient(90deg,rgba(58,184,254,1),rgba(0,58,90,1))] bg-clip-text text-transparent"
-                >
-                  4 Easy
-                </motion.span>
-
-                <motion.span
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 0.8, delay: 1 }}
-                  className="font-betterlett text-[34px] md:text-[48px] lg:text-[70px] text-[#FF0808]"
-                >
-                  Steps!
-                </motion.span>
+                <span className="font-bold text-[28px] md:text-[40px] lg:text-[60px] bg-[linear-gradient(90deg,rgba(58,184,254,1),rgba(0,58,90,1))] bg-clip-text text-transparent">4 Easy</span>
+                <span className="font-betterlett text-[34px] md:text-[48px] lg:text-[70px] text-[#FF0808]">Steps!</span>
               </div>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 120 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, amount: 0.5 }}
-              transition={{ duration: 1.2 }}
-              className="flex justify-center w-full lg:w-175 max-w-175"
-            >
-              <div className="relative w-full md:w-130 lg:w-186.75 md:h-105 lg:h-138.75 rounded-2xl bg-[linear-gradient(180deg,#052f4c,#02131d)] flex items-center justify-center lg:mt-0 md:mt-0 mt-20">
-                <motion.img
-                  src={box}
-                  initial={{ y: 120, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 1.2, delay: 0.5 }}
-                  className="absolute bottom-0 w-[85%] md:w-[80%] lg:w-auto"
-                />
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row mt-14 md:mt-20 gap-10 relative items-center">
-            <div className="hidden lg:block absolute w-[1100px] h-[1100px] rounded-full border-r border-white/30 left-[150px] -top-[230px]" />
-
-            <div className="flex flex-col gap-5 w-full lg:w-auto">
+            {/* Step cards - same position as left text, shown one by one */}
+            <div className="absolute left-5 lg:left-10 top-1/2 -translate-y-1/2 w-[calc(100%-40px)] lg:w-[736px] z-20" style={{ perspective: "1000px" }}>
               {steps.map((s, i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ opacity: 0, y: 120, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: false, amount: 0.35 }}
-                  transition={{ duration: 0.9, delay: i * 0.15 }}
-                  className="relative flex items-center justify-between gap-4 lg:w-[736px] w-full px-8 py-7 rounded-[25px] overflow-hidden bg-[#012235] border border-[#034077] shadow-2xl"
+                  ref={el => stepCardsRef.current[i] = el}
+                  className="absolute top-0 left-0 w-full flex items-center justify-between gap-4 px-8 py-7 rounded-[25px] overflow-hidden bg-[#012235] border border-[#034077] shadow-2xl"
+                  style={{ transformStyle: "preserve-3d", willChange: "transform", minHeight: "160px" }}
                 >
-                  <div
-                    className="pointer-events-none absolute -left-32 top-1/2 -translate-y-1/2 w-64 h-64 opacity-25 blur-[40px]"
-                    style={{
-                      background: `radial-gradient(circle, #FFFFFF 23%, #FFFFFF 15.08%, #53555B 1%, transparent 70%)`,
-                    }}
-                  ></div>
-
-                  <div
-                    className="pointer-events-none absolute -right-32 top-1/2 -translate-y-1/2 w-64 h-64 opacity-25 blur-[40px]"
-                    style={{
-                      background: `radial-gradient(circle, #FFFFFF 23%, #FFFFFF 15.08%, #53555B 1%, transparent 70%)`,
-                    }}
-                  ></div>
-
+                  <div className="pointer-events-none absolute -left-32 top-1/2 -translate-y-1/2 w-64 h-64 opacity-25 blur-[40px]" style={{ background: `radial-gradient(circle, #FFFFFF 23%, #FFFFFF 15.08%, #53555B 1%, transparent 70%)` }} />
+                  <div className="pointer-events-none absolute -right-32 top-1/2 -translate-y-1/2 w-64 h-64 opacity-25 blur-[40px]" style={{ background: `radial-gradient(circle, #FFFFFF 23%, #FFFFFF 15.08%, #53555B 1%, transparent 70%)` }} />
                   <div className="relative z-10 flex flex-col">
-                    <motion.div
-                      initial={{ opacity: 0, y: 40 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: false }}
-                      transition={{ duration: 0.8, delay: i * 0.2 }}
-                      className="font-betterlett text-[#FF0808] text-[45px] md:text-[60px] lg:text-[75px] font-bold leading-none mb-3"
-                    >
-                      {s.no}
-                    </motion.div>
-
+                    <div className="font-betterlett text-[#FF0808] text-[45px] md:text-[60px] lg:text-[75px] font-bold leading-none mb-3">{s.no}</div>
                     <div className="flex flex-col leading-[1.1]">
                       <div className="flex flex-wrap items-center">
-                        <motion.span
-                          initial={{ opacity: 0, x: -40 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: false }}
-                          transition={{ duration: 0.8, delay: i * 0.2 + 0.1 }}
-                          className="text-[#3AB8FE] text-[22px] md:text-[30px] lg:text-[38px] font-bold tracking-tight"
-                        >
-                          {s.title1}
-                        </motion.span>
-
-                        <motion.span
-                          initial={{ opacity: 0, x: 40 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: false }}
-                          transition={{ duration: 0.8, delay: i * 0.2 + 0.2 }}
-                          className="text-white text-[22px] md:text-[30px] lg:text-[38px] font-bold ml-2 tracking-tight"
-                        >
-                          {s.title2}
-                        </motion.span>
+                        <span className="text-[#3AB8FE] text-[22px] md:text-[30px] lg:text-[38px] font-bold tracking-tight">{s.title1}</span>
+                        <span className="text-white text-[22px] md:text-[30px] lg:text-[38px] font-bold ml-2 tracking-tight">{s.title2}</span>
                       </div>
-
-                      <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: false }}
-                        transition={{ duration: 0.8, delay: i * 0.2 + 0.3 }}
-                        className="text-white text-[22px] md:text-[30px] lg:text-[38px] font-bold tracking-tight"
-                      >
-                        {s.sub}
-                      </motion.div>
+                      <div className="text-white text-[22px] md:text-[30px] lg:text-[38px] font-bold tracking-tight">{s.sub}</div>
                     </div>
                   </div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: 80, rotate: -5 }}
-                    whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 0.9, delay: i * 0.2 + 0.2 }}
-                    className="relative z-10"
-                  >
-                    <img
-                      src={avatar}
-                      alt="illustration"
-                      className="w-36 md:w-56 lg:w-[280px] object-contain drop-shadow-xl"
-                    />
-                  </motion.div>
-                </motion.div>
+                  <div className="relative z-10">
+                    <img src={avatar} alt="illustration" className="w-36 md:w-56 lg:w-[280px] object-contain drop-shadow-xl" />
+                  </div>
+                </div>
               ))}
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 120 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, amount: 0.4 }}
-              transition={{ duration: 1 }}
-              className="lg:ml-[100px] flex justify-center"
-            >
-              <img src={line} />
-            </motion.div>
+            {/* RIGHT SIDE: bg box + spinning image (sibling, not child) + line image */}
+            <div className="second-right-img hidden lg:flex flex-col items-center ml-auto flex-shrink-0 lg:mt-180" style={{ width: "700px", position: "relative", gap: "32px", overflow: "visible" }}>
+
+              {/* Circle decoration */}
+              <div className="pointer-events-none" style={{
+                position: "absolute", width: "900px", height: "900px",
+                borderRadius: "50%", border: "1px solid rgba(255,255,255,0.2)",
+                right: "200px", top: "0px", zIndex: 0
+              }} />
+
+              {/* BG box + image wrapper - relative container so image can overflow upward */}
+              <div style={{ position: "relative", width: "100%", zIndex: 1, overflow: "visible" }}>
+
+                {/* BG box - just the background, no overflow clip */}
+                <div
+                  ref={secondBgRef}
+                  style={{
+                    width: "100%", height: "420px",
+                    borderRadius: "16px",
+                    background: "linear-gradient(180deg,#052f4c,#02131d)",
+                    willChange: "transform",
+                  }}
+                />
+
+                {/* Image - sibling to bg, absolutely positioned. GSAP sets xPercent:-50 for centering */}
+                <img
+                  ref={secondBoxImgRef}
+                  src={box}
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: "50%",
+                    width: "85%",
+                    objectFit: "contain",
+                    willChange: "transform",
+                    transformOrigin: "center center",
+                    zIndex: 10,
+                  }}
+                />
+              </div>
+
+              {/* Line image below */}
+              <img
+                ref={secondLineImgRef}
+                src={line}
+                style={{ width: "100%", objectFit: "contain", willChange: "transform", zIndex: 1 }}
+              />
+
+            </div>
+
           </div>
         </div>
-      </section>
+      </div>
 
       {/*secound section End Here*/}
 
       {/* third section start*/}
-      <div className="relative w-full flex flex-col items-center py-16 lg:py-0 overflow-hidden">
-        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-162.5 md:h-187.5 lg:h-200 third-section rounded-t-[40px] md:rounded-t-[60px] lg:rounded-t-[80px]"></div>
+      <div ref={thirdSectionRef} className="relative w-full flex flex-col items-center py-16 lg:py-0 overflow-hidden" style={{ perspective: "1400px" }}>
+        {/* BG div: left-top thi slide in thay - thirdBox1 sathe same timing */}
+        <div ref={thirdBgRef} className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-162.5 md:h-187.5 lg:h-200 third-section rounded-t-[40px] md:rounded-t-[60px] lg:rounded-t-[80px]" style={{ willChange: "transform" }}></div>
 
         <div className="relative z-10 w-full max-w-300 flex flex-col items-center px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 120, scale: 0.95 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 1.4 }}
+          <div
+            ref={thirdBox1Ref}
             className="w-full max-w-85 md:max-w-130 lg:max-w-[997px] lg:h-[554px] bg-[#072c40] border border-[#034077] rounded-xl md:rounded-2xl p-5 md:p-8 lg:p-10 flex items-center justify-center shadow-lg"
+            style={{ transformStyle: "preserve-3d", willChange: "transform" }}
           >
-            <motion.img
+            <img
               src={Thirdbox}
-              initial={{ scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: false }}
-              transition={{ duration: 1.6 }}
               className="max-w-full max-h-full object-contain lg:mb-20"
             />
-          </motion.div>
+          </div>
 
-          <div className="text-center mt-10 md:mt-16 lg:mt-20 px-2 md:px-4 mb-10 md:mb-16 lg:mb-20 lg:max-w-[1253px] mx-auto flex flex-col items-center">
-            <motion.p
-              initial={{ opacity: 0, y: 80 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 1.2 }}
-              className="text-white text-[18px] sm:text-[22px] md:text-[32px] lg:text-[50px] font-bold font-sansation leading-tight text-center lg:whitespace-nowrap"
-            >
+          <div ref={thirdTextRef} className="text-center mt-10 md:mt-16 lg:mt-20 px-2 md:px-4 mb-10 md:mb-16 lg:mb-20 lg:max-w-[1253px] mx-auto flex flex-col items-center" style={{ transformStyle: "preserve-3d" }}>
+            <p className="text-white text-[18px] sm:text-[22px] md:text-[32px] lg:text-[50px] font-bold font-sansation leading-tight text-center lg:whitespace-nowrap">
               USING OUR ARTIFICIAL INTELLIGENCE ENGINE
-            </motion.p>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 100 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 1.3, delay: 0.2 }}
-              className="text-white text-[18px] sm:text-[22px] md:text-[28px] lg:text-[50px] font-bold font-sansation leading-tight text-center lg:whitespace-nowrap mt-2"
-            >
+            <p className="text-white text-[18px] sm:text-[22px] md:text-[28px] lg:text-[50px] font-bold font-sansation leading-tight text-center lg:whitespace-nowrap mt-2">
               IS
               <motion.span
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: false }}
-                transition={{
-                  duration: 0.9,
-                  delay: 0.4,
-                  type: "spring",
-                  stiffness: 120,
-                }}
+                transition={{ duration: 0.9, delay: 0.4, type: "spring", stiffness: 120 }}
                 className="text-[#FF0808] mx-2 md:mx-3 text-[26px] sm:text-[30px] md:text-[40px] lg:text-[70px] leading-none font-betterlett"
               >
                 Easy
               </motion.span>
               AS
-              <motion.span
-                initial={{ opacity: 0, x: 80 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 1.2, delay: 0.5 }}
-                className="text-[#3AB8FE] ml-2 md:ml-4 text-[18px] sm:text-[22px] md:text-[28px] lg:text-[50px] font-bold leading-tight font-sansation"
-              >
+              <span className="text-[#3AB8FE] ml-2 md:ml-4 text-[18px] sm:text-[22px] md:text-[28px] lg:text-[50px] font-bold leading-tight font-sansation">
                 BOOKING A PLANE TICKET ONLINE!
-              </motion.span>
-            </motion.p>
+              </span>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 1.2, delay: 0.4 }}
-              className="text-gray-300 text-[13px] sm:text-[14px] md:text-[18px] lg:text-[24px] mt-4 font-sansation max-w-[320px] md:max-w-[700px] lg:max-w-[1253px] text-center"
-            >
+            <p className="text-gray-300 text-[13px] sm:text-[14px] md:text-[18px] lg:text-[24px] mt-4 font-sansation max-w-[320px] md:max-w-[700px] lg:max-w-[1253px] text-center">
               Upload Your Revit 3D BIM Mode And Download Your Construction
               Schedule & Take-Off Estimate!
-            </motion.p>
+            </p>
           </div>
 
-          <motion.img
+          <img
+            ref={thirdFloatImgRef}
             src={Thirdbox2}
-            initial={{ opacity: 0, x: 200, rotate: -6 }}
-            whileInView={{ opacity: 0.9, x: 0, rotate: 0 }}
-            viewport={{ once: false }}
-            transition={{ duration: 1.6 }}
             className="hidden lg:block absolute -right-70 bottom-95 w-[550px]"
+            style={{ willChange: "transform" }}
           />
 
-          <motion.div
-            initial={{ opacity: 0, y: 120, scale: 0.95 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 1.4 }}
+          <div
+            ref={thirdBox2Ref}
             className="w-full max-w-[340px] md:max-w-[520px] lg:max-w-[747px] bg-[#072c40] border border-[#034077] rounded-xl md:rounded-2xl p-5 md:p-8 lg:p-10 flex justify-center shadow-lg"
+            style={{ transformStyle: "preserve-3d", willChange: "transform" }}
           >
-            <motion.img
+            <img
               src={Thirdbox1}
-              initial={{ scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: false }}
-              transition={{ duration: 1.5 }}
               className="w-full object-contain"
             />
-          </motion.div>
+          </div>
         </div>
       </div>
       {/* third section end*/}
 
       {/* fourth section start here*/}
 
-      <div className="relative w-full py-12 md:py-16 lg:py-30 overflow-hidden">
+      <div ref={fourthSectionRef} className="relative w-full py-12 md:py-16 lg:py-30 overflow-hidden">
         {/* Heading */}
-        <div className="text-center px-4 max-w-[1550px] mx-auto">
+        <div ref={fourthHeadingRef} className="text-center px-4 max-w-[1550px] mx-auto">
           <h2 className="text-white font-bold leading-tight text-[22px] sm:text-[30px] md:text-[40px] lg:text-[60px] relative font-sansation">
             LET OUR{" "}
             <span className="text-[#3AB8FE]">
@@ -558,7 +1069,7 @@ border-2 border-red-500 mt-4 mb-4"
         {/* Content */}
         <div className="relative max-w-400 mx-auto flex flex-col md:flex-row items-center justify-center md:justify-between gap-10 md:gap-8 lg:gap-10 px-4 mt-10 md:mt-0">
           {/* Left Box */}
-          <div className="feature-box px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-15 max-w-65 md:max-w-75 lg:max-w-90">
+          <div ref={fourthLeftBoxRef} className="feature-box px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-15 max-w-65 md:max-w-75 lg:max-w-90">
             <p className="text-white font-bold text-[18px] md:text-[20px] lg:text-[24px] leading-tight">
               <span className="text-[#3AB8FE] font-bold text-[18px] md:text-[20px] lg:text-[24px]">
                 DOWNLOAD
@@ -587,13 +1098,13 @@ border-2 border-red-500 mt-4 mb-4"
 
           {/* Images */}
           <div className="flex flex-col items-center gap-6 mt-6 md:mt-10 lg:mt-15">
-            <img src={Home1} className="w-50 sm:w-60 md:w-75 lg:w-153.25" />
+            <img ref={fourthImg1Ref} src={Home1} className="w-50 sm:w-60 md:w-75 lg:w-153.25" />
 
-            <img src={Home2} className="w-50 sm:w-60 md:w-75 lg:w-153.25" />
+            <img ref={fourthImg2Ref} src={Home2} className="w-50 sm:w-60 md:w-75 lg:w-153.25" />
           </div>
 
           {/* Right Box */}
-          <div className="feature-box px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-15 max-w-65 md:max-w-75 lg:max-w-90">
+          <div ref={fourthRightBoxRef} className="feature-box px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-15 max-w-65 md:max-w-75 lg:max-w-90">
             <p className="text-white font-bold text-[18px] md:text-[20px] lg:text-[24px] leading-tight">
               <span className="text-[#3AB8FE] font-bold text-[18px] md:text-[20px] lg:text-[24px]">
                 DOWNLOAD
@@ -626,16 +1137,16 @@ border-2 border-red-500 mt-4 mb-4"
 
       {/** section five start here*/}
 
-      <section className="construction-section w-full py-16 md:py-24 lg:py-30">
+      <section ref={fifthSectionRef} className="construction-section w-full py-16 md:py-24 lg:py-30">
         <div className="construction-container max-w-[1550px] mx-auto px-5 relative grid lg:grid-cols-2 md:grid-cols-1 gap-y-16 lg:gap-x-30">
           <div className="boxes-area flex flex-col md:flex-row gap-10 md:gap-16 lg:gap-20 items-center md:items-start justify-center lg:justify-start">
             <div className="boxes-col-left flex flex-col gap-8 md:gap-12 lg:gap-15">
-              <FeatureBox />
-              <FeatureBox />
+              <div ref={fifthBox1Ref}><FeatureBox /></div>
+              <div ref={fifthBox2Ref}><FeatureBox /></div>
             </div>
 
             <div className="boxes-col-center flex justify-center mt-0 md:mt-20 lg:mt-40">
-              <FeatureBox />
+              <div ref={fifthBox3Ref}><FeatureBox /></div>
             </div>
           </div>
 
@@ -645,11 +1156,11 @@ border-2 border-red-500 mt-4 mb-4"
           </div>
 
           <div className="houses-area flex flex-col items-start gap-10 md:gap-16 lg:gap-30">
-            <div className="house-img-1 w-82.5 md:w-112.5 lg:w-auto rounded-[18px] flex items-center justify-center">
+            <div ref={fifthImg1Ref} className="house-img-1 w-82.5 md:w-112.5 lg:w-auto rounded-[18px] flex items-center justify-center">
               <img src={Home2} className="w-77.5 md:w-112.5 lg:w-auto" />
             </div>
 
-            <div className="house-img house-img-2 ml-0 md:-ml-15 lg:-ml-30">
+            <div ref={fifthImg2Ref} className="house-img house-img-2 ml-0 md:-ml-15 lg:-ml-30">
               <img
                 src={Home2}
                 className="w-77.5 md:w-112.5 lg:w-auto lg:mt-30"
@@ -663,31 +1174,39 @@ border-2 border-red-500 mt-4 mb-4"
 
       {/** section six start here*/}
 
-      <section className="w-full py-16 flex justify-center bg-[#001A28]">
+      <section ref={sixthSectionRef} className="w-full py-16 flex justify-center bg-[#001A28]">
         <div className="relative w-full max-w-[1550px] px-4 md:px-8 flex flex-col items-center lg:items-start">
           <div className="relative w-full flex justify-center lg:justify-start">
-            <div className="relative w-full md:w-[80%] lg:w-[1041.896px] rounded-[20px] p-1.5 bg-[linear-gradient(180deg,#1b78a8,#0e5c86)] shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+            {/* Left image - scrubs from left with 360° rotationY */}
+            <div ref={sixthLeftImgRef} className="relative w-full md:w-[80%] lg:w-[1041.896px] rounded-[20px] p-1.5 bg-[linear-gradient(180deg,#1b78a8,#0e5c86)] shadow-[0_0_40px_rgba(0,0,0,0.6)]">
               <img
                 src={Report}
                 className="w-full h-auto rounded-2xl object-cover"
               />
             </div>
 
+            {/* Right side - bg scrubs from right, img scrubs from top (fifth section), arrows split */}
             <div className="relative lg:absolute lg:right-0 lg:top-16 mt-8 lg:mt-0 flex flex-col items-center lg:items-start">
-              <div className="w-[85%] md:w-105 lg:w-150 rounded-2xl bg-[#012235] border border-[#034077] p-3 shadow-xl">
+              {/* Right bg box - scrubs from right (static bg, only bg moves in) */}
+              {/* Right img wrapper - scrubs down from fifth section */}
+              <div ref={sixthRightBgRef} className="w-[85%] md:w-105 lg:w-150 rounded-2xl bg-[#012235] border border-[#034077] p-3 shadow-xl">
                 <img
+                  ref={sixthRightImgRef}
                   src={Home2}
                   className="w-full h-auto rounded-xl object-cover"
                 />
               </div>
 
+              {/* Arrow buttons - each arrow icon and bg animates independently */}
               <div className="flex gap-4 mt-6 lg:ml-45">
-                <div className="w-14 h-14 lg:w-19 lg:h-19.25 rounded-xl flex items-center justify-center bg-[linear-gradient(145deg,#0a3550,#051e2d)] relative overflow-hidden">
+                {/* Arrow 1: bg from left, icon from top */}
+                <div ref={sixthArrow1BgRef} className="w-14 h-14 lg:w-19 lg:h-19.25 rounded-xl flex items-center justify-center bg-[linear-gradient(145deg,#0a3550,#051e2d)] relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.15),transparent_30%)]"></div>
                   <svg
+                    ref={sixthArrow1IconRef}
                     width="34"
                     height="17"
-                    className="lg:mb-5"
+                    className="lg:mb-5 relative z-10"
                     viewBox="0 0 34 17"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -700,12 +1219,14 @@ border-2 border-red-500 mt-4 mb-4"
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,255,255,0.15),transparent_30%)]"></div>
                 </div>
 
-                <div className="w-14 h-14 lg:w-19 lg:h-19.25 rounded-xl flex items-center justify-center bg-[linear-gradient(145deg,#0a3550,#051e2d)] relative overflow-hidden">
+                {/* Arrow 2: bg from right, icon from bottom */}
+                <div ref={sixthArrow2BgRef} className="w-14 h-14 lg:w-19 lg:h-19.25 rounded-xl flex items-center justify-center bg-[linear-gradient(145deg,#0a3550,#051e2d)] relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,255,255,0.15),transparent_30%)]"></div>
                   <svg
+                    ref={sixthArrow2IconRef}
                     width="34"
                     height="17"
-                    className="lg:mb-5"
+                    className="lg:mb-5 relative z-10"
                     viewBox="0 0 34 17"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -727,53 +1248,68 @@ border-2 border-red-500 mt-4 mb-4"
 
       {/** section seven start here*/}
 
-      <section className="w-full py-16 md:py-20 lg:pt-50 lg:pb-25 overflow-hidden">
+      <section ref={seventhSectionRef} className="w-full py-16 md:py-20 lg:pt-70 lg:pb-25 overflow-hidden">
         <div className="max-w-[1550px] mx-auto px-6 relative">
           <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 items-center gap-10">
-            <div className="relative z-50 lg:-mr-0 md:-mr-16 flex justify-center items-center mb-30 lg:mb-0">
+
+            {/* LEFT BOX: left side thi slide in, content zoom out thay */}
+            <div ref={seventhLeftBoxRef} className="relative z-50 lg:-mr-0 md:-mr-16 flex justify-center items-center mb-30 lg:mb-0" style={{ transformStyle: "preserve-3d", willChange: "transform" }}>
               {" "}
               <div className="feature-box px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-15 max-w-[260px] md:max-w-[380px] lg:max-w-[595px] rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 relative overflow-hidden flex flex-col items-center text-center">
                 {" "}
                 <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-white-500/30 to-transparent"></div>{" "}
                 <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white-500/30 to-transparent"></div>{" "}
-                <p className="text-white font-bold text-[30px] md:text-[55px] lg:text-[100px] leading-none font-sansation">
-                  {" "}
-                  How it{" "}
-                </p>{" "}
-                <p className="text-[#FF0808] italic text-[36px] md:text-[60px] lg:text-[100px] leading-none md:-mt-6 lg:-mt-10 font-betterlett">
-                  {" "}
-                  Works{" "}
-                </p>{" "}
-                <p className="text-white text-[13px] md:text-[15px] lg:text-[18px] max-w-[220px] md:max-w-[260px] lg:max-w-[355px] mt-6 lg:mt-20 font-sansation">
-                  {" "}
-                  Get up and running in minutes to start uploading your
-                  construction plans Upload your plans and simply select
-                  schedule, costs, or both{" "}
-                </p>{" "}
-                <button className="relative text-white text-[14px] md:text-[16px] lg:text-[24px] px-6 md:px-7 lg:px-8 py-2 md:py-3 flex items-center justify-center border-t border-b border-[#FFFFFF26] mt-6 lg:mt-20">
-                  {" "}
-                  <span className="absolute left-0 top-0 h-full w-4 border-l border-t border-b border-white -skew-x-12"></span>{" "}
-                  Get Started{" "}
-                  <span className="absolute right-0 top-0 h-full w-4 border-r border-t border-b border-white skew-x-12"></span>{" "}
-                </button>{" "}
+                {/* Content wrapper - zoom out from depth */}
+                <div ref={seventhLeftContentRef} className="flex flex-col items-center" style={{ transformStyle: "preserve-3d" }}>
+                  <p className="text-white font-bold text-[30px] md:text-[55px] lg:text-[100px] leading-none font-sansation">
+                    {" "}
+                    How it{" "}
+                  </p>{" "}
+                  <p className="text-[#FF0808] italic text-[36px] md:text-[60px] lg:text-[100px] leading-none md:-mt-6 lg:-mt-10 font-betterlett">
+                    {" "}
+                    Works{" "}
+                  </p>{" "}
+                  <p className="text-white text-[13px] md:text-[15px] lg:text-[18px] max-w-[220px] md:max-w-[260px] lg:max-w-[355px] mt-6 lg:mt-20 font-sansation">
+                    {" "}
+                    Get up and running in minutes to start uploading your
+                    construction plans Upload your plans and simply select
+                    schedule, costs, or both{" "}
+                  </p>{" "}
+                  <button className="relative text-white text-[14px] md:text-[16px] lg:text-[24px] px-6 md:px-7 lg:px-8 py-2 md:py-3 flex items-center justify-center border-t border-b border-[#FFFFFF26] mt-6 lg:mt-20">
+                    {" "}
+                    <span className="absolute left-0 top-0 h-full w-4 border-l border-t border-b border-white -skew-x-12"></span>{" "}
+                    Get Started{" "}
+                    <span className="absolute right-0 top-0 h-full w-4 border-r border-t border-b border-white skew-x-12"></span>{" "}
+                  </button>{" "}
+                </div>
               </div>{" "}
             </div>
 
+            {/* RIGHT SIDE: bg square open thay, pachi image spin karta aave */}
             <div className="relative flex justify-center lg:justify-end">
               <div className="relative">
+                {/* RIGHT BG BOX: scale 0 thi open thay (square open effect) */}
                 <div
+                  ref={seventhRightBgRef}
                   className="rounded-3xl border border-[#034077] bg-[#012235] flex justify-center 
           w-full md:w-[700px] lg:w-[1100px] lg:h-[856px] p-10 lg:-ml-40"
+                  style={{ transformStyle: "preserve-3d", willChange: "transform" }}
                 >
+                  {/* RIGHT IMAGE: right-top mathi 360° spin karta aave, pachi float */}
                   <img
+                    ref={seventhRightImgRef}
                     src={Home3}
                     className="w-full lg:w-[700px] lg:h-[700px] object-contain"
+                    style={{ willChange: "transform" }}
                   />
                 </div>
 
+                {/* TOP IMAGE (FourBox): top mathi 360° rotationY spin karta niche aave */}
                 <img
+                  ref={seventhTopImgRef}
                   src={FourBox}
                   className="absolute -top-40 md:-top-28 lg:-top-60 lg:left-1/4 left-1/2 -translate-x-1/2 w-[250px] md:w-[420px] lg:w-[500px]"
+                  style={{ willChange: "transform" }}
                 />
               </div>
             </div>
