@@ -35,7 +35,7 @@ html, body {
 
 .hero-bg {
   width: 100%;
-  min-height: 110vh;
+  min-height: 105vh;
   position: relative;
   overflow: hidden;
   border-bottom-left-radius: 40px;
@@ -47,17 +47,35 @@ html, body {
     linear-gradient(to left, #1b78a8 0%, #0e5c86 15%, transparent 25%);
 }
 
+@media (max-width: 767px) {
+  .hero-bg {
+    min-height: 0;
+    height: 75vh;
+    /* padding-bottom: 80px; */
+  }
+}
+
 .hero-bg::before {
   content:"";
   position:absolute;
   bottom:-120px;
-  left:55%;
-  transform:translatex(-70%);
+  left:50%;
+  transform:translateX(-50%);
   width:450px;
   height:200px;
   background:#001A28;
   border-top-left-radius:220px;
   border-top-right-radius:220px;
+}
+
+@media (max-width: 767px) {
+  .hero-bg::before {
+    width: 280px;
+    height: 140px;
+    bottom: -80px;
+    border-top-left-radius: 150px;
+    border-top-right-radius: 150px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -176,7 +194,7 @@ html, body {
 
 
 .get-started-text {
-  font-size: 30px;
+  /* font-size: 30px; */
   margin-top: 18px;
   background: linear-gradient(90deg, #3AB8FE 0%, #ffffff 70%);
   -webkit-background-clip: text;
@@ -409,6 +427,21 @@ border-right:2px solid rgba(255,255,255,0.25);
 }
 /*section five css end here*/
 
+/* Section 2: steps holder position */
+.sec2-steps-pos {
+  top: 100px;
+}
+@media (min-width: 768px) {
+  .sec2-steps-pos {
+    top: 38%;
+  }
+}
+@media (min-width: 1024px) {
+  .sec2-steps-pos {
+    top: 35%;
+  }
+}
+
 /* second section - prevent image clipping during 360 spin */
 .second-sticky-panel {
   overflow: visible !important;
@@ -427,6 +460,40 @@ border-right:2px solid rgba(255,255,255,0.25);
 [data-3d-card] {
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* Section 6: mobile stacked layout */
+@media (max-width: 1023px) {
+  section[class*="sixthSection"] .lg\:absolute {
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+  }
+}
+
+/* Section 8: card column height */
+.eighth-card-col {
+  height: 230px;
+}
+@media (min-width: 768px) {
+  .eighth-card-col {
+    height: 420px;
+  }
+}
+
+/* Section 8: center bg responsive height */
+.eighth-center-bg {
+  height: 250px;
+}
+@media (min-width: 768px) {
+  .eighth-center-bg {
+    height: 420px;
+  }
+}
+@media (min-width: 1024px) {
+  .eighth-center-bg {
+    height: 554px;
+  }
 }
 
 /* Footer section start */
